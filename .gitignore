@@ -1,5 +1,5 @@
 # CMakeLists.txt
 external/*
-imgui.ini
-gloo.cfg
+# imgui.ini
+# gloo.cfg
 build/*
