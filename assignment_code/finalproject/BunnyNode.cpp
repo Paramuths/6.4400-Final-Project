@@ -1,5 +1,4 @@
 #include "BunnyNode.hpp"
-
 #include "gloo/components/RenderingComponent.hpp"
 #include "gloo/components/ShadingComponent.hpp"
 #include "gloo/components/MaterialComponent.hpp"
@@ -29,12 +28,14 @@ namespace GLOO {
         bunny_mesh_ = MeshLoader::Import(bunny_path).vertex_obj;
         bunny_positions_ = bunny_mesh_->GetPositions();
         SetNormals();
+        bunny_normals_ = bunny_mesh_->GetNormals();
         SetColors();
 
         auto bunny_node = make_unique<SceneNode>();
         bunny_node->CreateComponent<ShadingComponent>(my_shader_);
         bunny_node->CreateComponent<MaterialComponent>(bunny_material_);
         bunny_node->CreateComponent<RenderingComponent>(bunny_mesh_);
+        bunny_node->GetTransform().SetScale(glm::vec3(3.0f));
         bunny_pointer_ = bunny_node.get();
         AddChild(std::move(bunny_node));
     }
@@ -45,13 +46,15 @@ namespace GLOO {
 
         for (auto position: bunny_positions_) {
             particle_state_.positions.push_back(position);
-            particle_state_.velocities.push_back(glm::vec3(0));
+        }
+        for (auto normal: bunny_normals_) {
+            particle_state_.velocities.push_back(normal * 0.01f);
         }
     }
 
     void BunnyNode::InitSystem() {
         integrator_ = IntegratorFactory::CreateIntegrator<ParticleSystemBase, ParticleState>();
-        particle_system_ = SimpleParticleSystem();
+        particle_system_ = ExplodingSystem();
     }
 
     void BunnyNode::Update(double delta_time) {

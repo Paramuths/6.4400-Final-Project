@@ -3,7 +3,6 @@
 
 #include "gloo/Application.hpp"
 
-#include "IntegratorType.hpp"
 #include "ParticleSystemBase.hpp"
 #include "ParticleState.hpp"
 

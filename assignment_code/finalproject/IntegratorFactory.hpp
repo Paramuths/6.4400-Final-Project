@@ -6,7 +6,6 @@
 #include <stdexcept>
 
 #include "gloo/utils.hpp"
-#include "IntegratorType.hpp"
 #include "RungeKutta4Integrator.hpp"
 
 namespace GLOO {

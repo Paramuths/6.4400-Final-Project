@@ -2,7 +2,6 @@
 
 #include "glm/gtx/string_cast.hpp"
 
-#include "gloo/shaders/PhongShader.hpp"
 #include "gloo/components/RenderingComponent.hpp"
 #include "gloo/components/ShadingComponent.hpp"
 #include "gloo/components/CameraComponent.hpp"
@@ -14,11 +13,7 @@
 #include "gloo/cameras/ArcBallCameraNode.hpp"
 #include "gloo/debug/AxisNode.hpp"
 
-#include "NodeExtension/ParticleNode.hpp"
-#include "NodeExtension/PendulumNode.hpp"
-#include "NodeExtension/ClothNode.hpp"
-#include "NodeExtension/CollisionNode.hpp"
-#include "NodeExtension/BunnyNode.hpp"
+#include "BunnyNode.hpp"
 
 #include <fstream>
 
@@ -51,11 +46,6 @@ void SimulationApp::SetupScene() {
   point_light_node->CreateComponent<LightComponent>(point_light);
   point_light_node->GetTransform().SetPosition(glm::vec3(0.0f, 2.0f, 4.f));
   root.AddChild(std::move(point_light_node));
-
-  // root.AddChild(make_unique<ParticleNode>(integration_step_));
-  // root.AddChild(make_unique<PendulumNode>(integration_step_));
-  // root.AddChild(make_unique<ClothNode>(integration_step_));
-  // root.AddChild(make_unique<CollisionNode>(integration_step_));
 
   // Create Bunny Node
   root.AddChild(make_unique<BunnyNode>(integration_step_));

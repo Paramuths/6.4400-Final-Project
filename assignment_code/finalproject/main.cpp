@@ -5,7 +5,6 @@
 #include <stdexcept>
 
 #include "SimulationApp.hpp"
-#include "IntegratorType.hpp"
 
 using namespace GLOO;
 

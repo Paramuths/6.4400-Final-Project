@@ -2,13 +2,9 @@
 #define BUNNY_NODE_H_
 
 #include "gloo/SceneNode.hpp"
-
-#include "IntegratorType.hpp"
 #include "IntegratorBase.hpp"
-#include "PendulumSystem.hpp"
-#include "SimpleParticleSystem.hpp"
+#include "ExplodingSystem.hpp"
 #include "ParticleState.hpp"
-
 #include "gloo/shaders/MyShader.hpp"
 #include "gloo/Material.hpp"
 #include "gloo/VertexObject.hpp"
@@ -31,7 +27,7 @@ namespace GLOO {
 
         std::unique_ptr<IntegratorBase<ParticleSystemBase, ParticleState>> integrator_;
         ParticleState particle_state_;
-        SimpleParticleSystem particle_system_;
+        ExplodingSystem particle_system_;
 
         // step
         float integration_step_;
@@ -40,6 +36,7 @@ namespace GLOO {
         // components
         SceneNode* bunny_pointer_;
         PositionArray bunny_positions_;
+        NormalArray bunny_normals_;
         std::shared_ptr<MyShader> my_shader_;
         std::shared_ptr<VertexObject> bunny_mesh_;
         std::shared_ptr<Material> bunny_material_;
