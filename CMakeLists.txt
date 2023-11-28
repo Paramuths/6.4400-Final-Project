@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(6.837)
+project(6.4400)
 
 if (APPLE)
     # Universal binaries to avoid Intel vs ARM Mac compatability issues

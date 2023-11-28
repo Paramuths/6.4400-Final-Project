@@ -18,6 +18,9 @@
 #include "NodeExtension/PendulumNode.hpp"
 #include "NodeExtension/ClothNode.hpp"
 #include "NodeExtension/CollisionNode.hpp"
+#include "NodeExtension/BunnyNode.hpp"
+
+#include <fstream>
 
 namespace GLOO {
 SimulationApp::SimulationApp(const std::string& app_name,
@@ -49,9 +52,12 @@ void SimulationApp::SetupScene() {
   point_light_node->GetTransform().SetPosition(glm::vec3(0.0f, 2.0f, 4.f));
   root.AddChild(std::move(point_light_node));
 
-  root.AddChild(make_unique<ParticleNode>(integration_step_));
-  root.AddChild(make_unique<PendulumNode>(integration_step_));
-  root.AddChild(make_unique<ClothNode>(integration_step_));
-  root.AddChild(make_unique<CollisionNode>(integration_step_));
+  // root.AddChild(make_unique<ParticleNode>(integration_step_));
+  // root.AddChild(make_unique<PendulumNode>(integration_step_));
+  // root.AddChild(make_unique<ClothNode>(integration_step_));
+  // root.AddChild(make_unique<CollisionNode>(integration_step_));
+
+  // Create Bunny Node
+  root.AddChild(make_unique<BunnyNode>(integration_step_));
 }
 }  // namespace GLOO
