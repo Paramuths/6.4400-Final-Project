@@ -8,7 +8,7 @@
 #include "gloo/InputManager.hpp"
 
 namespace GLOO {
-    CollisionNode::CollisionNode(IntegratorType integrator_type, float integration_step): 
+    CollisionNode::CollisionNode(float integration_step): 
         integration_step_(integration_step) {
         // Instantiate MyShader, VertexObject, Material
         my_shader_ = std::make_shared<MyShader>();
@@ -23,7 +23,7 @@ namespace GLOO {
                                                     glm::vec3(0.f, .5f, 1.f),
                                                     glm::vec3(0.4f, 0.4f, 0.4f), 20.0f);
 
-        integrator_ = IntegratorFactory::CreateIntegrator<ParticleSystemBase, ParticleState>(integrator_type);
+        integrator_ = IntegratorFactory::CreateIntegrator<ParticleSystemBase, ParticleState>();
         particle_system_ = PendulumSystem();
         sphere_system_ = SphereSystem();
         Init();

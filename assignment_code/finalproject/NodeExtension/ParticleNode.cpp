@@ -9,7 +9,7 @@
 #include "gloo/InputManager.hpp"
 
 namespace GLOO {
-    ParticleNode::ParticleNode(IntegratorType integrator_type, float integration_step): 
+    ParticleNode::ParticleNode(float integration_step): 
         integration_step_(integration_step) {
         GetTransform().SetPosition(glm::vec3(-2.5f, 0.f, 0.f));
         // Instantiate PhongShader, VertexObject, Material
@@ -27,7 +27,7 @@ namespace GLOO {
         sphere_node_ = sphere_node.get();
         AddChild(std::move(sphere_node));
 
-        integrator_ = IntegratorFactory::CreateIntegrator<ParticleSystemBase, ParticleState>(integrator_type);
+        integrator_ = IntegratorFactory::CreateIntegrator<ParticleSystemBase, ParticleState>();
         particle_system_ = SimpleParticleSystem();
         InitParticle();
         SetPosition();

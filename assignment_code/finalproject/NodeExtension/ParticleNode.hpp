@@ -11,7 +11,7 @@
 namespace GLOO {
     class ParticleNode : public SceneNode {
         public:
-        ParticleNode(IntegratorType integrator_type, float integration_step);
+        ParticleNode(float integration_step);
         void Update(double delta_time) override;
 
         private:

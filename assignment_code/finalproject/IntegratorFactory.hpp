@@ -6,32 +6,15 @@
 #include <stdexcept>
 
 #include "gloo/utils.hpp"
-
 #include "IntegratorType.hpp"
-
-#include "ForwardEulerIntegrator.hpp"
-#include "TrapezoidalIntegrator.hpp"
 #include "RungeKutta4Integrator.hpp"
 
 namespace GLOO {
 class IntegratorFactory {
  public:
   template <class TSystem, class TState>
-  static std::unique_ptr<IntegratorBase<TSystem, TState>> CreateIntegrator(
-      IntegratorType type) {
-    switch (type) {
-      case IntegratorType::Euler:
-        return make_unique<ForwardEulerIntegrator<TSystem, TState>>();
-        break;
-      case IntegratorType::Trapezoidal:
-        return make_unique<TrapezoidalIntegrator<TSystem, TState>>();
-        break;
-      case IntegratorType::RK4:
-        return make_unique<RungeKutta4Integrator<TSystem, TState>>();
-        break;
-      default:
-        throw std::runtime_error("Unrecognized integrator type");
-    }
+  static std::unique_ptr<IntegratorBase<TSystem, TState>> CreateIntegrator() {
+    return make_unique<RungeKutta4Integrator<TSystem, TState>>();
   }
 };
 }  // namespace GLOO

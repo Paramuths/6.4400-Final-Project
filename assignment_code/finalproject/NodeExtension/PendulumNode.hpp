@@ -15,13 +15,12 @@
 namespace GLOO {
     class PendulumNode : public SceneNode {
         public:
-        PendulumNode(IntegratorType integrator_type, float integration_step, int spring_particle_index);
+        PendulumNode(float integration_step);
         void Update(double delta_time) override;
 
         private:
         void Advance(float start_time);
         void SetPosition();
-        void SetSpring();
         void InitParticle();
         void Init();
 
@@ -36,10 +35,7 @@ namespace GLOO {
         float carrier_time_step_ = 0.f;
 
         // spring
-        int spring_particle_index_;
-        std::vector<int> spring_connected_indices_;
         std::vector<std::tuple<int, int, float, float>> spring_force_;
-        std::vector<SceneNode*> spring_pointer_;
 
         // components
         std::shared_ptr<PhongShader> phong_shader_;

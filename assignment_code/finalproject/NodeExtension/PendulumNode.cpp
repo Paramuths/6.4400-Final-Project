@@ -8,9 +8,8 @@
 #include "gloo/InputManager.hpp"
 
 namespace GLOO {
-    PendulumNode::PendulumNode(IntegratorType integrator_type, float integration_step, int spring_particle_index): 
-        integration_step_(integration_step),
-        spring_particle_index_(spring_particle_index) {
+    PendulumNode::PendulumNode(float integration_step): 
+        integration_step_(integration_step) {
         // Instantiate PhongShader, VertexObject, Material
         phong_shader_ = std::make_shared<PhongShader>();
         sphere_mesh_ = PrimitiveFactory::CreateSphere(0.2f, 50, 50);
@@ -22,7 +21,7 @@ namespace GLOO {
                                                     glm::vec3(.3f, .6f, .3f),
                                                     glm::vec3(0.4f, 0.4f, 0.4f), 20.0f);
 
-        integrator_ = IntegratorFactory::CreateIntegrator<ParticleSystemBase, ParticleState>(integrator_type);
+        integrator_ = IntegratorFactory::CreateIntegrator<ParticleSystemBase, ParticleState>();
         particle_system_ = PendulumSystem();
         Init();
     }
@@ -44,7 +43,6 @@ namespace GLOO {
             prev_released = true;
         }
         SetPosition();
-        if (spring_particle_index_ != -1) SetSpring();
     }
 
     void PendulumNode::Advance(float start_time) {
@@ -85,9 +83,6 @@ namespace GLOO {
 
     void PendulumNode::Init() {
         InitParticle();
-        // Check if the given index is in a valid range
-        spring_particle_index_ = (spring_particle_index_ < particle_state_.positions.size() 
-                                && spring_particle_index_ >= 0)? spring_particle_index_: -1;
 
         for (auto position: particle_state_.positions) {
             auto sphere_node = make_unique<SceneNode>();
@@ -108,50 +103,5 @@ namespace GLOO {
                         std::make_tuple(2, 3, 30.f, 3.f), // Set spring force between third and fourth particle
                         };
         particle_system_.SetSpringForce(spring_force_); 
-        
-        if (spring_particle_index_ != -1) {
-            for (auto single_spring_force: spring_force_) {
-                auto particle_i = std::get<0>(single_spring_force);
-                auto particle_j = std::get<1>(single_spring_force);
-
-                if (spring_particle_index_ == particle_i) {
-                    spring_connected_indices_.push_back(particle_j);
-                } else if (spring_particle_index_ == particle_j) {
-                    spring_connected_indices_.push_back(particle_i);
-                }
-            }
-
-            // Create Spring Node
-            for (int i = 0; i < spring_connected_indices_.size(); i++) {
-                auto spring_node = make_unique<SceneNode>();
-                spring_node->CreateComponent<ShadingComponent>(phong_shader_);
-                spring_node->CreateComponent<RenderingComponent>(spring_mesh_);
-                spring_node->CreateComponent<MaterialComponent>(spring_material_);
-
-                spring_pointer_.push_back(spring_node.get());
-                particle_pointer_[spring_particle_index_]->AddChild(std::move(spring_node));
-            }
-
-            SetSpring();
-        }
-    }
-
-    void PendulumNode::SetSpring() {
-        auto num_spring = spring_connected_indices_.size();
-        auto spring_particle_index_position = particle_state_.positions[spring_particle_index_];
-
-        for (int i = 0; i < num_spring; i++) {
-            auto connected_index = spring_connected_indices_[i];
-            auto spring_node = spring_pointer_[i];
-
-            auto connected_position = particle_state_.positions[connected_index];
-            auto displacement = connected_position - spring_particle_index_position;
-
-            auto axis = glm::normalize(glm::cross(displacement, glm::vec3(0, 1, 0)));
-            auto angle = glm::acos(displacement[1]/(glm::length(displacement)));
-
-            spring_node->GetTransform().SetRotation(axis, -angle);
-            spring_node->GetTransform().SetScale(glm::vec3(1.f, glm::length(displacement), 1.f));
-        }
     }
 }

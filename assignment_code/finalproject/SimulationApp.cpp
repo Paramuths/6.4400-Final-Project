@@ -18,24 +18,13 @@
 #include "NodeExtension/PendulumNode.hpp"
 #include "NodeExtension/ClothNode.hpp"
 #include "NodeExtension/CollisionNode.hpp"
-#include "NodeExtension/SlimeNode.hpp"
-
 
 namespace GLOO {
 SimulationApp::SimulationApp(const std::string& app_name,
                              glm::ivec2 window_size,
-                             IntegratorType integrator_type,
-                             float integration_step,
-                             int spring_particle_index)
+                             float integration_step)
     : Application(app_name, window_size),
-      integrator_type_(integrator_type),
-      integration_step_(integration_step),
-      spring_particle_index_(spring_particle_index) {
-  // TODO: remove the following two lines and use integrator type and step to
-  // create integrators; the lines below exist only to suppress compiler
-  // warnings.
-  // UNUSED(integrator_type_);
-  // UNUSED(integration_step_);
+      integration_step_(integration_step) {
 }
 
 void SimulationApp::SetupScene() {
@@ -60,10 +49,9 @@ void SimulationApp::SetupScene() {
   point_light_node->GetTransform().SetPosition(glm::vec3(0.0f, 2.0f, 4.f));
   root.AddChild(std::move(point_light_node));
 
-  root.AddChild(make_unique<ParticleNode>(integrator_type_, integration_step_));
-  root.AddChild(make_unique<PendulumNode>(integrator_type_, integration_step_, spring_particle_index_));
-  root.AddChild(make_unique<ClothNode>(integrator_type_, integration_step_));
-  root.AddChild(make_unique<CollisionNode>(integrator_type_, integration_step_));
-  root.AddChild(make_unique<SlimeNode>(integrator_type_, integration_step_));
+  root.AddChild(make_unique<ParticleNode>(integration_step_));
+  root.AddChild(make_unique<PendulumNode>(integration_step_));
+  root.AddChild(make_unique<ClothNode>(integration_step_));
+  root.AddChild(make_unique<CollisionNode>(integration_step_));
 }
 }  // namespace GLOO

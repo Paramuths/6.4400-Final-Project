@@ -15,7 +15,7 @@
 namespace GLOO {
     class ClothNode : public SceneNode {
         public:
-        ClothNode(IntegratorType integrator_type, float integration_step);
+        ClothNode(float integration_step);
         void Update(double delta_time) override;
 
         private:

@@ -17,7 +17,7 @@
 namespace GLOO {
     class CollisionNode : public SceneNode {
         public:
-        CollisionNode(IntegratorType integrator_type, float integration_step);
+        CollisionNode(float integration_step);
         void Update(double delta_time) override;
 
         private:

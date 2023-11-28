@@ -7,7 +7,7 @@
 #include "gloo/InputManager.hpp"
 
 namespace GLOO {
-    ClothNode::ClothNode(IntegratorType integrator_type, float integration_step): 
+    ClothNode::ClothNode(float integration_step): 
         integration_step_(integration_step) {
         // Instantiate MyShader, VertexObject, Material
         my_shader_ = std::make_shared<MyShader>();
@@ -15,7 +15,7 @@ namespace GLOO {
         cloth_material_ = std::make_shared<Material>(glm::vec3(1.f, 1.f, 1.f),
                                                     glm::vec3(1.f, 1.f, 1.f),
                                                     glm::vec3(0.4f, 0.4f, 0.4f), 20.0f);
-        integrator_ = IntegratorFactory::CreateIntegrator<ParticleSystemBase, ParticleState>(integrator_type);
+        integrator_ = IntegratorFactory::CreateIntegrator<ParticleSystemBase, ParticleState>();
         particle_system_ = ClothSystem();
         Init();
     }
