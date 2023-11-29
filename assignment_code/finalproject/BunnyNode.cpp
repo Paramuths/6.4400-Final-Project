@@ -5,6 +5,7 @@
 #include "IntegratorFactory.hpp"
 #include "gloo/InputManager.hpp"
 #include "gloo/MeshLoader.hpp"
+#include "gloo/debug/PrimitiveFactory.hpp"
 #include <fstream>
 
 namespace GLOO {
@@ -16,6 +17,7 @@ namespace GLOO {
     void BunnyNode::Init() {
         InitBunny();
         InitParticle();
+        InitSphere();
         InitSystem();
     }
 
@@ -30,12 +32,13 @@ namespace GLOO {
         SetNormals();
         bunny_normals_ = bunny_mesh_->GetNormals();
         SetColors();
+        bunny_scale_ = glm::vec3(3.f);
 
         auto bunny_node = make_unique<SceneNode>();
         bunny_node->CreateComponent<ShadingComponent>(my_shader_);
         bunny_node->CreateComponent<MaterialComponent>(bunny_material_);
         bunny_node->CreateComponent<RenderingComponent>(bunny_mesh_);
-        bunny_node->GetTransform().SetScale(glm::vec3(3.0f));
+        bunny_node->GetTransform().SetScale(bunny_scale_);
         bunny_pointer_ = bunny_node.get();
         AddChild(std::move(bunny_node));
     }
@@ -48,7 +51,30 @@ namespace GLOO {
             particle_state_.positions.push_back(position);
         }
         for (auto normal: bunny_normals_) {
-            particle_state_.velocities.push_back(normal * 0.01f);
+            particle_state_.velocities.push_back(normal * 0.05f);
+        }
+    }
+
+    void BunnyNode::InitSphere() {
+        phong_shader_ = std::make_shared<PhongShader>();
+        sphere_material_ = std::make_shared<Material>(glm::vec3(0.f, 1.f, 1.f),
+                                                    glm::vec3(0.f, 1.f, 0.f),
+                                                    glm::vec3(0.4f, 0.4f, 0.4f), 20.0f);
+        sphere_mesh_ = PrimitiveFactory::CreateSphere(0.01f, 20, 20);
+
+        for (auto position: particle_state_.positions) {
+            auto sphere_node = make_unique<SceneNode>();
+            sphere_node->CreateComponent<ShadingComponent>(phong_shader_);
+            sphere_node->CreateComponent<MaterialComponent>(sphere_material_);
+            sphere_node->CreateComponent<RenderingComponent>(sphere_mesh_);
+            // sphere_node->SetActive(false);
+
+            auto sphere_parent_node = make_unique<SceneNode>();
+            sphere_parent_node->GetTransform().SetPosition(position * bunny_scale_);
+            sphere_parent_node->AddChild(std::move(sphere_node));
+
+            sphere_parent_pointers_.push_back(sphere_parent_node.get());
+            AddChild(std::move(sphere_parent_node));
         }
     }
 
@@ -84,10 +110,11 @@ namespace GLOO {
 
     void BunnyNode::SetPositions() {
         auto positions = make_unique<PositionArray>();
-        for (auto position: particle_state_.positions) {
-            positions->push_back(position);
+        for (int i = 0; i < particle_state_.positions.size(); i++) {
+            positions->push_back(particle_state_.positions[i]);
+            sphere_parent_pointers_[i]->GetTransform().SetPosition(particle_state_.positions[i] * bunny_scale_);
         }
-        bunny_mesh_->UpdatePositions(std::move(positions));
+        // bunny_mesh_->UpdatePositions(std::move(positions));
     }
 
     void BunnyNode::SetNormals() {

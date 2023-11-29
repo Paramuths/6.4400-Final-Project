@@ -6,6 +6,7 @@
 #include "ExplodingSystem.hpp"
 #include "ParticleState.hpp"
 #include "gloo/shaders/MyShader.hpp"
+#include "gloo/shaders/PhongShader.hpp"
 #include "gloo/Material.hpp"
 #include "gloo/VertexObject.hpp"
 
@@ -19,6 +20,7 @@ namespace GLOO {
         void Init();
         void InitParticle();
         void InitBunny();
+        void InitSphere();
         void InitSystem();
         void Advance(float start_time);
         void SetPositions();
@@ -40,6 +42,12 @@ namespace GLOO {
         std::shared_ptr<MyShader> my_shader_;
         std::shared_ptr<VertexObject> bunny_mesh_;
         std::shared_ptr<Material> bunny_material_;
+        glm::vec3 bunny_scale_;
+
+        std::vector<SceneNode*> sphere_parent_pointers_;
+        std::shared_ptr<PhongShader> phong_shader_;
+        std::shared_ptr<VertexObject> sphere_mesh_;
+        std::shared_ptr<Material> sphere_material_;
     };
 }
 

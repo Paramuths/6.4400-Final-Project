@@ -21,8 +21,8 @@ class ExplodingSystem : public ParticleSystemBase {
     public:
 
     private:
-    glm::vec3 gravity_ = glm::vec3(0.f, 0.f, 0.f);
-    float drag_constant = .05f;
+    glm::vec3 gravity_ = glm::vec3(0.f, 0.f, 0.f); // change the gravity here
+    float drag_constant = .0f; // change the drag here
 };
 }  // namespace GLOO
 
