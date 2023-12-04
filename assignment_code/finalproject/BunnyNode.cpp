@@ -17,7 +17,7 @@ namespace GLOO {
     void BunnyNode::Init() {
         InitBunny();
         InitParticle();
-        InitSphere();
+        InitTriangle();
         InitSystem();
     }
 
@@ -33,7 +33,6 @@ namespace GLOO {
         bunny_indices_ = bunny_mesh_->GetIndices();
         SetNormals();
         bunny_normals_ = bunny_mesh_->GetNormals();
-        // SetColors();
         bunny_scale_ = glm::vec3(3.f);
 
         auto bunny_node = make_unique<SceneNode>();
@@ -64,7 +63,7 @@ namespace GLOO {
         exploding_ = false;
     }
 
-    void BunnyNode::InitSphere() {
+    void BunnyNode::InitTriangle() {
         phong_shader_ = std::make_shared<PhongShader>();
         triangle_material_ = std::make_shared<Material>(glm::vec3(1.f, 1.f, 1.f),
                                                     glm::vec3(1.f, 1.f, 1.f),
@@ -119,17 +118,18 @@ namespace GLOO {
                 Advance(float(i * integration_step_));
             }
             SetPositions();
-            // SetNormals();
         }
 
         // Toggle 'R' to reset
         static bool prev_released = true;
         if (InputManager::GetInstance().IsKeyPressed('R')) {
             if (prev_released) {
-                InitParticle();
-                SetPositions();
-                SetNormals();
-                ResetExplosionActive();
+                if (exploding_) {
+                    InitParticle();
+                    SetPositions();
+                    SetNormals();
+                    ResetExplosionActive();
+                }
             }
             prev_released = false;
         // Toggle 'E' to explode
@@ -150,10 +150,8 @@ namespace GLOO {
     }
 
     void BunnyNode::SetPositions() {
-        auto positions = make_unique<PositionArray>();
-        for (int i = 0; i < particle_state_.positions.size(); i++) {
-            positions->push_back(particle_state_.positions[i]);
-        }
+        #include <iostream>
+        // std::cout << triangle_pointers_[0]. << std::endl;
         for (int i = 0; i < particle_state_.positions.size()/3; i++) {
             auto positions = make_unique<PositionArray>();
             positions->push_back(particle_state_.positions[3 * i]);
@@ -161,31 +159,27 @@ namespace GLOO {
             positions->push_back(particle_state_.positions[3 * i + 2]);
             triangle_pointers_[i]->GetComponentPtr<RenderingComponent>()->GetVertexObjectPtr()->UpdatePositions(std::move(positions));
         }
-        // bunny_mesh_->UpdatePositions(std::move(positions));
     }
 
     void BunnyNode::SetNormals() {
-        auto positions = bunny_mesh_->GetPositions();
-        auto indices = bunny_mesh_->GetIndices();
-
         std::vector<std::vector<glm::vec3>> normal_around_vertices;
-        for (int i = 0; i < positions.size(); i++) {
+        for (int i = 0; i < bunny_positions_.size(); i++) {
             normal_around_vertices.push_back(std::vector<glm::vec3>());
         }
 
-        for (int i = 0; i < indices.size(); i += 3) {
-            auto vertex1 = positions[indices[i]];
-            auto vertex2 = positions[indices[i + 1]];
-            auto vertex3 = positions[indices[i + 2]];
+        for (int i = 0; i < bunny_indices_.size(); i += 3) {
+            auto vertex1 = bunny_positions_[bunny_indices_[i]];
+            auto vertex2 = bunny_positions_[bunny_indices_[i + 1]];
+            auto vertex3 = bunny_positions_[bunny_indices_[i + 2]];
             auto cross_product = glm::cross(vertex3 - vertex2, vertex1 - vertex2);
             
-            normal_around_vertices[indices[i]].push_back(cross_product);
-            normal_around_vertices[indices[i + 1]].push_back(cross_product);
-            normal_around_vertices[indices[i + 2]].push_back(cross_product);
+            normal_around_vertices[bunny_indices_[i]].push_back(cross_product);
+            normal_around_vertices[bunny_indices_[i + 1]].push_back(cross_product);
+            normal_around_vertices[bunny_indices_[i + 2]].push_back(cross_product);
         }
 
         auto normals = make_unique<NormalArray>();
-        for (int i = 0; i < positions.size(); i++) {
+        for (int i = 0; i < bunny_positions_.size(); i++) {
             glm::vec3 normal(0.f, 0.f, 0.f);
             auto normal_around_vertex = normal_around_vertices[i];
             for (int j = 0; j < normal_around_vertex.size(); j++) {

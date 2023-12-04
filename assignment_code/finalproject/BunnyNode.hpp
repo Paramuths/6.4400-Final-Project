@@ -20,7 +20,7 @@ namespace GLOO {
         void Init();
         void InitParticle();
         void InitBunny();
-        void InitSphere();
+        void InitTriangle();
         void InitSystem();
         void Advance(float start_time);
         void SetPositions();
