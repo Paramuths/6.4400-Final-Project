@@ -25,7 +25,7 @@ namespace GLOO {
         void Advance(float start_time);
         void SetPositions();
         void SetNormals();
-        void SetColors();
+        // void SetColors();
         void MakeExplosionActive();
         void ResetExplosionActive();
 
@@ -41,15 +41,17 @@ namespace GLOO {
         SceneNode* bunny_pointer_;
         PositionArray bunny_positions_;
         NormalArray bunny_normals_;
-        std::shared_ptr<MyShader> my_shader_;
+        IndexArray bunny_indices_;
+
+        // std::shared_ptr<MyShader> my_shader_;
+        std::shared_ptr<PhongShader> bunny_shader_;
         std::shared_ptr<VertexObject> bunny_mesh_;
         std::shared_ptr<Material> bunny_material_;
         glm::vec3 bunny_scale_;
 
-        std::vector<SceneNode*> sphere_parent_pointers_;
+        std::vector<SceneNode*> triangle_pointers_;
         std::shared_ptr<PhongShader> phong_shader_;
-        std::shared_ptr<VertexObject> sphere_mesh_;
-        std::shared_ptr<Material> sphere_material_;
+        std::shared_ptr<Material> triangle_material_;
 
         bool exploding_;
     };

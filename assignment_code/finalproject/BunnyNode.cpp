@@ -22,20 +22,22 @@ namespace GLOO {
     }
 
     void BunnyNode::InitBunny() {
-        my_shader_ = std::make_shared<MyShader>();
+        // my_shader_ = std::make_shared<MyShader>();
+        bunny_shader_ = std::make_shared<PhongShader>();
         bunny_material_ = std::make_shared<Material>(glm::vec3(1.f, 1.f, 1.f),
                                                     glm::vec3(1.f, 1.f, 1.f),
                                                     glm::vec3(0.4f, 0.4f, 0.4f), 20.0f);
         std::string bunny_path = GetAssetDir() + "bunny_1k.obj";
         bunny_mesh_ = MeshLoader::Import(bunny_path).vertex_obj;
         bunny_positions_ = bunny_mesh_->GetPositions();
+        bunny_indices_ = bunny_mesh_->GetIndices();
         SetNormals();
         bunny_normals_ = bunny_mesh_->GetNormals();
-        SetColors();
+        // SetColors();
         bunny_scale_ = glm::vec3(3.f);
 
         auto bunny_node = make_unique<SceneNode>();
-        bunny_node->CreateComponent<ShadingComponent>(my_shader_);
+        bunny_node->CreateComponent<ShadingComponent>(phong_shader_);
         bunny_node->CreateComponent<MaterialComponent>(bunny_material_);
         bunny_node->CreateComponent<RenderingComponent>(bunny_mesh_);
         bunny_node->GetTransform().SetScale(bunny_scale_);
@@ -47,10 +49,15 @@ namespace GLOO {
         particle_state_.positions = {};
         particle_state_.velocities = {};
 
-        for (auto position: bunny_positions_) {
-            particle_state_.positions.push_back(position);
-        }
-        for (auto normal: bunny_normals_) {
+        for (int i = 0; i < bunny_indices_.size(); i += 3) {
+            particle_state_.positions.push_back(bunny_positions_[bunny_indices_[i]]);
+            particle_state_.positions.push_back(bunny_positions_[bunny_indices_[i + 1]]);
+            particle_state_.positions.push_back(bunny_positions_[bunny_indices_[i + 2]]);
+
+            auto normal = glm::normalize(glm::cross(bunny_positions_[bunny_indices_[i + 1]] - bunny_positions_[bunny_indices_[i]],
+                                                    bunny_positions_[bunny_indices_[i + 2]] - bunny_positions_[bunny_indices_[i]]));
+            particle_state_.velocities.push_back(normal * 0.05f);
+            particle_state_.velocities.push_back(normal * 0.05f);
             particle_state_.velocities.push_back(normal * 0.05f);
         }
 
@@ -59,24 +66,43 @@ namespace GLOO {
 
     void BunnyNode::InitSphere() {
         phong_shader_ = std::make_shared<PhongShader>();
-        sphere_material_ = std::make_shared<Material>(glm::vec3(0.f, 1.f, 1.f),
-                                                    glm::vec3(0.f, 1.f, 0.f),
+        triangle_material_ = std::make_shared<Material>(glm::vec3(1.f, 1.f, 1.f),
+                                                    glm::vec3(1.f, 1.f, 1.f),
                                                     glm::vec3(0.4f, 0.4f, 0.4f), 20.0f);
-        sphere_mesh_ = PrimitiveFactory::CreateSphere(0.01f, 10, 10);
+        // sphere_mesh_ = PrimitiveFactory::CreateSphere(0.01f, 10, 10);
 
-        for (auto position: particle_state_.positions) {
-            auto sphere_node = make_unique<SceneNode>();
-            sphere_node->CreateComponent<ShadingComponent>(phong_shader_);
-            sphere_node->CreateComponent<MaterialComponent>(sphere_material_);
-            sphere_node->CreateComponent<RenderingComponent>(sphere_mesh_);
-            sphere_node->SetActive(false);
+        for (int i = 0; i < bunny_indices_.size(); i += 3) {
+            auto triangle_node = make_unique<SceneNode>();
+            triangle_node->CreateComponent<ShadingComponent>(phong_shader_);
+            triangle_node->CreateComponent<MaterialComponent>(triangle_material_);
 
-            auto sphere_parent_node = make_unique<SceneNode>();
-            sphere_parent_node->GetTransform().SetPosition(position * bunny_scale_);
-            sphere_parent_node->AddChild(std::move(sphere_node));
+            auto triangle_mesh = std::make_shared<VertexObject>();
 
-            sphere_parent_pointers_.push_back(sphere_parent_node.get());
-            AddChild(std::move(sphere_parent_node));
+            auto positions = make_unique<PositionArray>();
+            positions->push_back(bunny_positions_[bunny_indices_[i]]);
+            positions->push_back(bunny_positions_[bunny_indices_[i + 1]]);
+            positions->push_back(bunny_positions_[bunny_indices_[i + 2]]);
+
+            auto normals = make_unique<NormalArray>();
+            normals->push_back(bunny_normals_[bunny_indices_[i]]);
+            normals->push_back(bunny_normals_[bunny_indices_[i + 1]]);
+            normals->push_back(bunny_normals_[bunny_indices_[i + 2]]);
+
+            auto indices = make_unique<IndexArray>();
+            indices->push_back(0);
+            indices->push_back(1);
+            indices->push_back(2);
+
+            triangle_mesh->UpdatePositions(std::move(positions));
+            triangle_mesh->UpdateNormals(std::move(normals));
+            triangle_mesh->UpdateIndices(std::move(indices));
+
+            triangle_node->CreateComponent<RenderingComponent>(triangle_mesh).SetDrawMode(DrawMode::Triangles);
+            triangle_node->GetTransform().SetScale(bunny_scale_);
+            triangle_node->SetActive(false);
+
+            triangle_pointers_.push_back(triangle_node.get());
+            AddChild(std::move(triangle_node));
         }
     }
 
@@ -93,7 +119,7 @@ namespace GLOO {
                 Advance(float(i * integration_step_));
             }
             SetPositions();
-            SetNormals();
+            // SetNormals();
         }
 
         // Toggle 'R' to reset
@@ -127,7 +153,13 @@ namespace GLOO {
         auto positions = make_unique<PositionArray>();
         for (int i = 0; i < particle_state_.positions.size(); i++) {
             positions->push_back(particle_state_.positions[i]);
-            sphere_parent_pointers_[i]->GetTransform().SetPosition(particle_state_.positions[i] * bunny_scale_);
+        }
+        for (int i = 0; i < particle_state_.positions.size()/3; i++) {
+            auto positions = make_unique<PositionArray>();
+            positions->push_back(particle_state_.positions[3 * i]);
+            positions->push_back(particle_state_.positions[3 * i + 1]);
+            positions->push_back(particle_state_.positions[3 * i + 2]);
+            triangle_pointers_[i]->GetComponentPtr<RenderingComponent>()->GetVertexObjectPtr()->UpdatePositions(std::move(positions));
         }
         // bunny_mesh_->UpdatePositions(std::move(positions));
     }
@@ -164,26 +196,26 @@ namespace GLOO {
         bunny_mesh_->UpdateNormals(std::move(normals));
     }
 
-    void BunnyNode::SetColors() {
-        auto colors = make_unique<ColorArray>();
-        for (int i = 0; i < bunny_positions_.size(); i++) {
-            glm::vec3 color(0.f, 0.f, 0.f);
-            colors->push_back(glm::vec4(color[0], color[1], color[2], 0.f));
-        }
-        bunny_mesh_->UpdateColors(std::move(colors));
-    }
+    // void BunnyNode::SetColors() {
+    //     auto colors = make_unique<ColorArray>();
+    //     for (int i = 0; i < bunny_positions_.size(); i++) {
+    //         glm::vec3 color(0.f, 0.f, 0.f);
+    //         colors->push_back(glm::vec4(color[0], color[1], color[2], 0.f));
+    //     }
+    //     bunny_mesh_->UpdateColors(std::move(colors));
+    // }
 
     void BunnyNode::MakeExplosionActive() {
         bunny_pointer_->SetActive(false);
-        for (auto sphere_parent_pointer: sphere_parent_pointers_) {
-            sphere_parent_pointer->GetChild(0).SetActive(true);
+        for (auto triangle_pointer: triangle_pointers_) {
+            triangle_pointer->SetActive(true);
         }
     }
 
     void BunnyNode::ResetExplosionActive() {
         bunny_pointer_->SetActive(true);
-        for (auto sphere_parent_pointer: sphere_parent_pointers_) {
-            sphere_parent_pointer->GetChild(0).SetActive(false);
+        for (auto triangle_pointer: triangle_pointers_) {
+            triangle_pointer->SetActive(false);
         }
     }
 }
