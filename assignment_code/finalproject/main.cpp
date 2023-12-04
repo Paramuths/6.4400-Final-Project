@@ -10,7 +10,7 @@ using namespace GLOO;
 
 int main(int argc, char** argv) {
   std::unique_ptr<SimulationApp> app = make_unique<SimulationApp>(
-      "FinalProject", glm::ivec2(1440, 900), 0.001);
+      "FinalProject", glm::ivec2(1440, 900), 0.01);
 
   app->SetupScene();
 

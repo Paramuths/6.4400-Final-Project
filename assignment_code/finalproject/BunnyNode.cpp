@@ -53,6 +53,8 @@ namespace GLOO {
         for (auto normal: bunny_normals_) {
             particle_state_.velocities.push_back(normal * 0.05f);
         }
+
+        exploding_ = false;
     }
 
     void BunnyNode::InitSphere() {
@@ -60,14 +62,14 @@ namespace GLOO {
         sphere_material_ = std::make_shared<Material>(glm::vec3(0.f, 1.f, 1.f),
                                                     glm::vec3(0.f, 1.f, 0.f),
                                                     glm::vec3(0.4f, 0.4f, 0.4f), 20.0f);
-        sphere_mesh_ = PrimitiveFactory::CreateSphere(0.01f, 20, 20);
+        sphere_mesh_ = PrimitiveFactory::CreateSphere(0.01f, 10, 10);
 
         for (auto position: particle_state_.positions) {
             auto sphere_node = make_unique<SceneNode>();
             sphere_node->CreateComponent<ShadingComponent>(phong_shader_);
             sphere_node->CreateComponent<MaterialComponent>(sphere_material_);
             sphere_node->CreateComponent<RenderingComponent>(sphere_mesh_);
-            // sphere_node->SetActive(false);
+            sphere_node->SetActive(false);
 
             auto sphere_parent_node = make_unique<SceneNode>();
             sphere_parent_node->GetTransform().SetPosition(position * bunny_scale_);
@@ -84,23 +86,36 @@ namespace GLOO {
     }
 
     void BunnyNode::Update(double delta_time) {
-        int num_steps = (delta_time + carrier_time_step_)/integration_step_;
-        carrier_time_step_ = delta_time + carrier_time_step_ - float(num_steps * integration_step_);
-        for (int i = 0; i < num_steps; i++) {
-            Advance(float(i * integration_step_));
+        if (exploding_) {
+            int num_steps = (delta_time + carrier_time_step_)/integration_step_;
+            carrier_time_step_ = delta_time + carrier_time_step_ - float(num_steps * integration_step_);
+            for (int i = 0; i < num_steps; i++) {
+                Advance(float(i * integration_step_));
+            }
+            SetPositions();
+            SetNormals();
         }
+
         // Toggle 'R' to reset
         static bool prev_released = true;
         if (InputManager::GetInstance().IsKeyPressed('R')) {
             if (prev_released) {
                 InitParticle();
+                SetPositions();
+                SetNormals();
+                ResetExplosionActive();
+            }
+            prev_released = false;
+        // Toggle 'E' to explode
+        } else if (InputManager::GetInstance().IsKeyPressed('E')) {
+            if (prev_released) {
+                exploding_ = true;
+                MakeExplosionActive();
             }
             prev_released = false;
         } else {
             prev_released = true;
         }
-        SetPositions();
-        SetNormals();
     }
 
     void BunnyNode::Advance(float start_time) {
@@ -156,5 +171,19 @@ namespace GLOO {
             colors->push_back(glm::vec4(color[0], color[1], color[2], 0.f));
         }
         bunny_mesh_->UpdateColors(std::move(colors));
+    }
+
+    void BunnyNode::MakeExplosionActive() {
+        bunny_pointer_->SetActive(false);
+        for (auto sphere_parent_pointer: sphere_parent_pointers_) {
+            sphere_parent_pointer->GetChild(0).SetActive(true);
+        }
+    }
+
+    void BunnyNode::ResetExplosionActive() {
+        bunny_pointer_->SetActive(true);
+        for (auto sphere_parent_pointer: sphere_parent_pointers_) {
+            sphere_parent_pointer->GetChild(0).SetActive(false);
+        }
     }
 }

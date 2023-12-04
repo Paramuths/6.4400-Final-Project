@@ -26,6 +26,8 @@ namespace GLOO {
         void SetPositions();
         void SetNormals();
         void SetColors();
+        void MakeExplosionActive();
+        void ResetExplosionActive();
 
         std::unique_ptr<IntegratorBase<ParticleSystemBase, ParticleState>> integrator_;
         ParticleState particle_state_;
@@ -48,6 +50,8 @@ namespace GLOO {
         std::shared_ptr<PhongShader> phong_shader_;
         std::shared_ptr<VertexObject> sphere_mesh_;
         std::shared_ptr<Material> sphere_material_;
+
+        bool exploding_;
     };
 }
 
