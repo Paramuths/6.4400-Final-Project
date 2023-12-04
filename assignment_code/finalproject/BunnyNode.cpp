@@ -37,7 +37,7 @@ namespace GLOO {
         bunny_scale_ = glm::vec3(3.f);
 
         auto bunny_node = make_unique<SceneNode>();
-        bunny_node->CreateComponent<ShadingComponent>(phong_shader_);
+        bunny_node->CreateComponent<ShadingComponent>(bunny_shader_);
         bunny_node->CreateComponent<MaterialComponent>(bunny_material_);
         bunny_node->CreateComponent<RenderingComponent>(bunny_mesh_);
         bunny_node->GetTransform().SetScale(bunny_scale_);
