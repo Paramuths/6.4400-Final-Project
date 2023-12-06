@@ -53,11 +53,14 @@ namespace GLOO {
             particle_state_.positions.push_back(bunny_positions_[bunny_indices_[i + 1]]);
             particle_state_.positions.push_back(bunny_positions_[bunny_indices_[i + 2]]);
 
-            auto normal = glm::normalize(glm::cross(bunny_positions_[bunny_indices_[i + 1]] - bunny_positions_[bunny_indices_[i]],
-                                                    bunny_positions_[bunny_indices_[i + 2]] - bunny_positions_[bunny_indices_[i]]));
-            particle_state_.velocities.push_back(normal * 0.05f);
-            particle_state_.velocities.push_back(normal * 0.05f);
-            particle_state_.velocities.push_back(normal * 0.05f);
+            // auto normal = glm::normalize(glm::cross(bunny_positions_[bunny_indices_[i + 1]] - bunny_positions_[bunny_indices_[i]],
+            //                                         bunny_positions_[bunny_indices_[i + 2]] - bunny_positions_[bunny_indices_[i]]));
+            // particle_state_.velocities.push_back(normal * 0.05f);
+            // particle_state_.velocities.push_back(normal * 0.05f);
+            // particle_state_.velocities.push_back(normal * 0.05f);
+            particle_state_.velocities.push_back(glm::vec3(0.f,0.f,0.f));
+            particle_state_.velocities.push_back(glm::vec3(0.f,0.f,0.f));
+            particle_state_.velocities.push_back(glm::vec3(0.f,0.f,0.f));
         }
 
         exploding_ = false;
@@ -113,9 +116,10 @@ namespace GLOO {
     void BunnyNode::Update(double delta_time) {
         if (exploding_) {
             int num_steps = (delta_time + carrier_time_step_)/integration_step_;
+            used_time_ += float(num_steps * integration_step_);
             carrier_time_step_ = delta_time + carrier_time_step_ - float(num_steps * integration_step_);
             for (int i = 0; i < num_steps; i++) {
-                Advance(float(i * integration_step_));
+                Advance(used_time_ + float(i * integration_step_));
             }
             SetPositions();
         }
@@ -204,6 +208,7 @@ namespace GLOO {
         for (auto triangle_pointer: triangle_pointers_) {
             triangle_pointer->SetActive(true);
         }
+        used_time_ = 0.0f;
     }
 
     void BunnyNode::ResetExplosionActive() {

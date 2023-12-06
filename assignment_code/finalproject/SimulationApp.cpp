@@ -8,10 +8,12 @@
 #include "gloo/components/LightComponent.hpp"
 #include "gloo/components/MaterialComponent.hpp"
 #include "gloo/MeshLoader.hpp"
+#include "gloo/Material.hpp"
 #include "gloo/lights/PointLight.hpp"
 #include "gloo/lights/AmbientLight.hpp"
 #include "gloo/cameras/ArcBallCameraNode.hpp"
 #include "gloo/debug/AxisNode.hpp"
+#include "gloo/debug/PrimitiveFactory.hpp"
 
 #include "BunnyNode.hpp"
 
@@ -49,5 +51,18 @@ void SimulationApp::SetupScene() {
 
   // Create Bunny Node
   root.AddChild(make_unique<BunnyNode>(integration_step_));
+
+  // Create Explosion Center
+  auto expl_center = std::shared_ptr<VertexObject>(PrimitiveFactory::CreateSphere(0.05f, 20, 20));
+  auto shader_ = std::make_shared<PhongShader>();
+  glm::vec3 ctrl_color(0.f,1.f,0.f);
+  auto expl_material = std::make_shared<Material>(ctrl_color, ctrl_color, glm::vec3(0.4f), 20.0f);
+
+  auto expl_node = make_unique<SceneNode>();
+  expl_node->CreateComponent<ShadingComponent>(shader_);
+  expl_node->CreateComponent<RenderingComponent>(expl_center);
+  expl_node->CreateComponent<MaterialComponent>(expl_material);
+  expl_node->GetTransform().SetPosition(glm::vec3(-0.5f,-0.25f,0.f));
+  root.AddChild(std::move(expl_node));
 }
 }  // namespace GLOO

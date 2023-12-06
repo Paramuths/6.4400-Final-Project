@@ -36,6 +36,7 @@ namespace GLOO {
         // step
         float integration_step_;
         float carrier_time_step_ = 0.f;
+        float used_time_ = 0.f;
 
         // components
         SceneNode* bunny_pointer_;
