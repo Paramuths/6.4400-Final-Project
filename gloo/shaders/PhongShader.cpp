@@ -73,7 +73,7 @@ void PhongShader::SetCamera(const CameraComponent& camera) const {
   SetUniform("view_matrix", camera.GetViewMatrix());
   SetUniform("projection_matrix", camera.GetProjectionMatrix());
   SetUniform("camera_position",
-             camera.GetNodePtr()->GetTransform().GetWorldPosition());
+             glm::vec3(glm::inverse(camera.GetViewMatrix()) * glm::vec4(0.f,0.f,0.f,1.f)));
   // camera position should take into account position, direction, and distance
   // could probably rotate (1, 0, 0, 1) homogeneous to get the camera diretion
   // std::cout << glm::to_string(camera.GetNodePtr()->GetTransform().GetWorldPosition()) << std::endl;

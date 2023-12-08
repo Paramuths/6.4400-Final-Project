@@ -50,7 +50,10 @@ void SimulationApp::SetupScene() {
   root.AddChild(std::move(point_light_node));
 
   // Create Bunny Node
-  root.AddChild(make_unique<BunnyNode>(integration_step_));
+  auto bunny_node = make_unique<BunnyNode>(integration_step_);
+  BunnyNode* bunny_pointer = bunny_node.get();
+  root.AddChild(std::move(bunny_node));
+  bunny_pointer->GetTransform().SetRotation(glm::quat(1.f, 0.f, 0.f, 0.f));
 
   // Create Explosion Center
   auto expl_center = std::shared_ptr<VertexObject>(PrimitiveFactory::CreateSphere(0.05f, 20, 20));
@@ -62,7 +65,7 @@ void SimulationApp::SetupScene() {
   expl_node->CreateComponent<ShadingComponent>(shader_);
   expl_node->CreateComponent<RenderingComponent>(expl_center);
   expl_node->CreateComponent<MaterialComponent>(expl_material);
-  expl_node->GetTransform().SetPosition(glm::vec3(-0.5f,-0.25f,0.f));
+  expl_node->GetTransform().SetPosition(glm::vec3(0.f,0.201f,0.f));
   root.AddChild(std::move(expl_node));
 }
 }  // namespace GLOO

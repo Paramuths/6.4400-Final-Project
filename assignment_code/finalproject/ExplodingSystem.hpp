@@ -46,7 +46,7 @@ class ExplodingSystem : public ParticleSystemBase {
     float drag_constant = 0.1f; // change the drag here
     float start_explosion_ = 3.0f; // change time to start the explosion here
     float epsilon = 0.5f; // duration where force of explosion still exists
-    glm::vec3 explosion_center = glm::vec3(-0.5f,-0.25f,0.f); // origin of explosion
+    glm::vec3 explosion_center = glm::vec3(0.0f,0.067f,0.f); // origin of explosion
     // params for acceleration from explosion, assumed to be roughly inverse qudratic in distance from origin of explosion
     glm::vec3 explosion_coef = glm::vec3(1.0f, 0.0f, 0.2f);
 };
