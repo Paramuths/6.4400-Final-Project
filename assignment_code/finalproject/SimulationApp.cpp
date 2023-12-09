@@ -59,13 +59,22 @@ void SimulationApp::SetupScene() {
   auto expl_center = std::shared_ptr<VertexObject>(PrimitiveFactory::CreateSphere(0.05f, 20, 20));
   auto shader_ = std::make_shared<PhongShader>();
   glm::vec3 ctrl_color(0.f,1.f,0.f);
+  glm::vec3 more_ctrl_color(1.f,0.f,0.f);
   auto expl_material = std::make_shared<Material>(ctrl_color, ctrl_color, glm::vec3(0.4f), 20.0f);
+  auto more_expl_material = std::make_shared<Material>(more_ctrl_color, more_ctrl_color, glm::vec3(0.4f), 20.0f);
 
   auto expl_node = make_unique<SceneNode>();
   expl_node->CreateComponent<ShadingComponent>(shader_);
   expl_node->CreateComponent<RenderingComponent>(expl_center);
   expl_node->CreateComponent<MaterialComponent>(expl_material);
-  expl_node->GetTransform().SetPosition(glm::vec3(0.f,0.201f,0.f));
+  expl_node->GetTransform().SetPosition(glm::vec3(0.45f,0.201f,0.f));
   root.AddChild(std::move(expl_node));
+
+  auto more_expl_node = make_unique<SceneNode>();
+  more_expl_node->CreateComponent<ShadingComponent>(shader_);
+  more_expl_node->CreateComponent<RenderingComponent>(expl_center);
+  more_expl_node->CreateComponent<MaterialComponent>(more_expl_material);
+  more_expl_node->GetTransform().SetPosition(glm::vec3(-0.6f,0.201f,0.f));
+  root.AddChild(std::move(more_expl_node));
 }
 }  // namespace GLOO
