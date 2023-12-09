@@ -25,7 +25,7 @@ class ExplodingSystem : public ParticleSystemBase {
                 {
                     glm::vec3 avg_explosion = glm::vec3(0.f,0.f,0.f);
                     for(int j=0; j<3; j++){
-                        avg_explosion += ExplodingSystem::CalcExplosionAcc(state.positions[3 * i + j], k);
+                        avg_explosion += ExplodingSystem::CalcExplosionAcc(state.positions[3 * i + j], k, time_since_explode_[k]);
                     }
                     acceleration += avg_explosion * (1.0f/3.0f) * (1.0f - time_since_explode_[k] / epsilon_[k]);
                 }
@@ -38,11 +38,11 @@ class ExplodingSystem : public ParticleSystemBase {
     };
 
     public:
-    glm::vec3 CalcExplosionAcc(glm::vec3 vertex_position, int k) const
+    glm::vec3 CalcExplosionAcc(glm::vec3 vertex_position, int k, float timer) const
     {
         glm::vec3 direction = vertex_position - explosion_center_[k];
         float dist = glm::length(direction);
-        if(dist == 0.0f) return glm::vec3(0.f,0.f,0.f);
+        if(dist == 0.0f || dist > timer * expansion_rate_[k]) return glm::vec3(0.f,0.f,0.f);
         float explosion_attenuation = explosion_coef_[k][0] * dist * dist + explosion_coef_[k][1] * dist + explosion_coef_[k][2];
         return direction / (dist * explosion_attenuation);
     }
@@ -59,6 +59,7 @@ class ExplodingSystem : public ParticleSystemBase {
     //using more than one explosive
     std::vector<float> start_explosion_ = {3.0f, 2.6f};
     std::vector<float> epsilon_ = {0.4f, 0.5f};
+    std::vector<float> expansion_rate_ = {10.0f, 2.0f};
     std::vector<glm::vec3> explosion_center_ = {glm::vec3(0.15f,0.067f,0.f), glm::vec3(-0.2f,0.067f,0.f)}; 
     std::vector<glm::vec3> explosion_coef_ = {glm::vec3(0.9f, 0.0f, 0.1f),glm::vec3(1.1f, 0.0f, 0.3f)};
 
