@@ -31,6 +31,7 @@ namespace GLOO {
 
         std::unique_ptr<IntegratorBase<ParticleSystemBase, ParticleState>> integrator_;
         ParticleState particle_state_;
+        NormalArray particles_initial_normal_;
         ExplodingSystem particle_system_;
 
         // step
@@ -55,6 +56,9 @@ namespace GLOO {
         std::shared_ptr<Material> triangle_material_;
 
         bool exploding_;
+        
+        int triangle_scale_ = 3;
+        float triangle_multiplier_ = 1.f / float (triangle_scale_);
     };
 }
 

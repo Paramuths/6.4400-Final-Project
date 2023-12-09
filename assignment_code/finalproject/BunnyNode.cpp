@@ -49,20 +49,50 @@ namespace GLOO {
         particle_state_.velocities = {};
 
         for (int i = 0; i < bunny_indices_.size(); i += 3) {
-            particle_state_.positions.push_back(bunny_positions_[bunny_indices_[i]]);
-            particle_state_.positions.push_back(bunny_positions_[bunny_indices_[i + 1]]);
-            particle_state_.positions.push_back(bunny_positions_[bunny_indices_[i + 2]]);
+            auto pos1 = bunny_positions_[bunny_indices_[i]];
+            auto pos2 = bunny_positions_[bunny_indices_[i + 1]];
+            auto pos3 = bunny_positions_[bunny_indices_[i + 2]];
 
-            // auto normal = glm::normalize(glm::cross(bunny_positions_[bunny_indices_[i + 1]] - bunny_positions_[bunny_indices_[i]],
-            //                                         bunny_positions_[bunny_indices_[i + 2]] - bunny_positions_[bunny_indices_[i]]));
-            // particle_state_.velocities.push_back(normal * 0.05f);
-            // particle_state_.velocities.push_back(normal * 0.05f);
-            // particle_state_.velocities.push_back(normal * 0.05f);
-            particle_state_.velocities.push_back(glm::vec3(0.f,0.f,0.f));
-            particle_state_.velocities.push_back(glm::vec3(0.f,0.f,0.f));
-            particle_state_.velocities.push_back(glm::vec3(0.f,0.f,0.f));
+            auto nor1 = bunny_normals_[bunny_indices_[i]];
+            auto nor2 = bunny_normals_[bunny_indices_[i + 1]];
+            auto nor3 = bunny_normals_[bunny_indices_[i + 2]];
+
+            for (int i1 = 0; i1 < triangle_scale_; i1++) {
+                for (int i2 = 0; i2 < triangle_scale_ - i1; i2++) {
+                    float f1 = float(i1);
+                    float f2 = float(i2);
+                    float f3 = float(triangle_scale_) - f1 - f2;
+
+                    auto pos = triangle_multiplier_ * (f1 * pos1 + f2 * pos2 + f3 * pos3);
+                    auto nor = triangle_multiplier_ * (f1 * nor1 + f2 * nor2 + f3 * nor3);
+
+                    particle_state_.positions.push_back(pos);
+                    particle_state_.positions.push_back(pos + triangle_multiplier_ * (pos1 - pos3));
+                    particle_state_.positions.push_back(pos + triangle_multiplier_ * (pos2 - pos3));
+
+                    particles_initial_normal_.push_back(glm::normalize(nor));
+                    particles_initial_normal_.push_back(glm::normalize(nor + triangle_multiplier_ * (nor1 - nor3)));
+                    particles_initial_normal_.push_back(glm::normalize(nor + triangle_multiplier_ * (nor2 - nor3)));
+
+                    particle_state_.velocities.push_back(glm::vec3(0.f,0.f,0.f));
+                    particle_state_.velocities.push_back(glm::vec3(0.f,0.f,0.f));
+                    particle_state_.velocities.push_back(glm::vec3(0.f,0.f,0.f));
+                    if ((i1 < triangle_scale_ - 1) && (i2 < triangle_scale_ - 1)) {
+                        particle_state_.positions.push_back(pos + triangle_multiplier_ * (pos1 + pos2 - 2.f * pos3));
+                        particle_state_.positions.push_back(pos + triangle_multiplier_ * (pos1 - pos3));
+                        particle_state_.positions.push_back(pos + triangle_multiplier_ * (pos2 - pos3));
+
+                        particles_initial_normal_.push_back(glm::normalize(nor + triangle_multiplier_ * (nor1 + nor2 - 2.f * nor3)));
+                        particles_initial_normal_.push_back(glm::normalize(nor + triangle_multiplier_ * (nor1 - nor3)));
+                        particles_initial_normal_.push_back(glm::normalize(nor + triangle_multiplier_ * (nor2 - nor3)));
+
+                        particle_state_.velocities.push_back(glm::vec3(0.f,0.f,0.f));
+                        particle_state_.velocities.push_back(glm::vec3(0.f,0.f,0.f));
+                        particle_state_.velocities.push_back(glm::vec3(0.f,0.f,0.f));
+                    } 
+                }
+            }
         }
-
         exploding_ = false;
     }
 
@@ -71,9 +101,8 @@ namespace GLOO {
         triangle_material_ = std::make_shared<Material>(glm::vec3(1.f, 1.f, 1.f),
                                                     glm::vec3(1.f, 1.f, 1.f),
                                                     glm::vec3(0.4f, 0.4f, 0.4f), 20.0f);
-        // sphere_mesh_ = PrimitiveFactory::CreateSphere(0.01f, 10, 10);
 
-        for (int i = 0; i < bunny_indices_.size(); i += 3) {
+        for (int i = 0; i < particles_initial_normal_.size(); i += 3) {
             auto triangle_node = make_unique<SceneNode>();
             triangle_node->CreateComponent<ShadingComponent>(phong_shader_);
             triangle_node->CreateComponent<MaterialComponent>(triangle_material_);
@@ -81,14 +110,14 @@ namespace GLOO {
             auto triangle_mesh = std::make_shared<VertexObject>();
 
             auto positions = make_unique<PositionArray>();
-            positions->push_back(bunny_positions_[bunny_indices_[i]]);
-            positions->push_back(bunny_positions_[bunny_indices_[i + 1]]);
-            positions->push_back(bunny_positions_[bunny_indices_[i + 2]]);
+            positions->push_back(particle_state_.positions[i]);
+            positions->push_back(particle_state_.positions[i + 1]);
+            positions->push_back(particle_state_.positions[i + 2]);
 
             auto normals = make_unique<NormalArray>();
-            normals->push_back(bunny_normals_[bunny_indices_[i]]);
-            normals->push_back(bunny_normals_[bunny_indices_[i + 1]]);
-            normals->push_back(bunny_normals_[bunny_indices_[i + 2]]);
+            normals->push_back(particles_initial_normal_[i]);
+            normals->push_back(particles_initial_normal_[i + 1]);
+            normals->push_back(particles_initial_normal_[i + 2]);
 
             auto indices = make_unique<IndexArray>();
             indices->push_back(0);
@@ -154,8 +183,6 @@ namespace GLOO {
     }
 
     void BunnyNode::SetPositions() {
-        #include <iostream>
-        // std::cout << triangle_pointers_[0]. << std::endl;
         for (int i = 0; i < particle_state_.positions.size()/3; i++) {
             auto positions = make_unique<PositionArray>();
             positions->push_back(particle_state_.positions[3 * i]);
