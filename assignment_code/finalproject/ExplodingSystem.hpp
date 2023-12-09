@@ -57,9 +57,9 @@ class ExplodingSystem : public ParticleSystemBase {
     // glm::vec3 explosion_coef = glm::vec3(1.0f, 0.0f, 0.2f);
 
     //using more than one explosive
-    std::vector<float> start_explosion_ = {3.0f, 2.6f};
-    std::vector<float> epsilon_ = {0.4f, 0.5f};
-    std::vector<float> expansion_rate_ = {10.0f, 2.0f};
+    std::vector<float> start_explosion_ = {0.9f, 0.6f};
+    std::vector<float> epsilon_ = {0.15f, 0.3f};
+    std::vector<float> expansion_rate_ = {40.0f, 8.0f};
     std::vector<glm::vec3> explosion_center_ = {glm::vec3(0.15f,0.067f,0.f), glm::vec3(-0.2f,0.067f,0.f)}; 
     std::vector<glm::vec3> explosion_coef_ = {glm::vec3(0.9f, 0.0f, 0.1f),glm::vec3(1.1f, 0.0f, 0.3f)};
 

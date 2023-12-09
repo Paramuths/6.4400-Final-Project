@@ -57,7 +57,7 @@ namespace GLOO {
 
         bool exploding_;
         
-        int triangle_scale_ = 2;
+        int triangle_scale_ = 3;
         float triangle_multiplier_ = 1.f / float (triangle_scale_);
     };
 }

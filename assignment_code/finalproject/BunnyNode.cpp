@@ -77,7 +77,7 @@ namespace GLOO {
                     particle_state_.velocities.push_back(glm::vec3(0.f,0.f,0.f));
                     particle_state_.velocities.push_back(glm::vec3(0.f,0.f,0.f));
                     particle_state_.velocities.push_back(glm::vec3(0.f,0.f,0.f));
-                    if ((i1 < triangle_scale_ - 1) && (i2 < triangle_scale_ - 1)) {
+                    if (f3 > 1.1f) {
                         particle_state_.positions.push_back(pos + triangle_multiplier_ * (pos1 + pos2 - 2.f * pos3));
                         particle_state_.positions.push_back(pos + triangle_multiplier_ * (pos1 - pos3));
                         particle_state_.positions.push_back(pos + triangle_multiplier_ * (pos2 - pos3));
@@ -143,13 +143,15 @@ namespace GLOO {
     }
 
     void BunnyNode::Update(double delta_time) {
+        double slow_factor = 4;
+        double delta_time_=delta_time / slow_factor;
         if (exploding_) {
-            int num_steps = (delta_time + carrier_time_step_)/integration_step_;
-            used_time_ += float(num_steps * integration_step_);
-            carrier_time_step_ = delta_time + carrier_time_step_ - float(num_steps * integration_step_);
+            int num_steps = (delta_time_ + carrier_time_step_)/integration_step_;
+            carrier_time_step_ = delta_time_ + carrier_time_step_ - float(num_steps * integration_step_);
             for (int i = 0; i < num_steps; i++) {
                 Advance(used_time_ + float(i * integration_step_));
             }
+            used_time_ += float(num_steps * integration_step_);
             SetPositions();
         }
 
