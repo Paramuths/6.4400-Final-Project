@@ -38,9 +38,9 @@ namespace GLOO {
     }
 
     void SphereNode::InitParticle() {
-        auto initial_position = glm::vec3(-5.f, 1.f, 0.f);
+        auto initial_position = glm::vec3(-0.67f, 0.2f, 0.0f);
         particle_state_.positions = {initial_position};
-        particle_state_.velocities = {glm::vec3(1.f, 0.f, 0.f)};
+        particle_state_.velocities = {glm::vec3(0.8f, 0.f, 0.f)};
 
         start_ = false;
     }

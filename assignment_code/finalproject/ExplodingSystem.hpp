@@ -5,9 +5,36 @@
 
 namespace GLOO {
 class ExplodingSystem : public ParticleSystemBase {
+    public:
+    ExplodingSystem() {
+        num_explosive = 0;
+        start_explosion_.clear();
+        epsilon_.clear();
+        expansion_rate_.clear();
+        explosion_center_.clear();
+        explosion_coef_.clear();
+    }
+
+    void ClearBomb() {
+        num_explosive = 0;
+        start_explosion_.clear();
+        epsilon_.clear();
+        expansion_rate_.clear();
+        explosion_center_.clear();
+        explosion_coef_.clear();
+    }
+
+    void AddBomb(float starting_time, glm::vec3 position, float multiplier) {
+        num_explosive ++;
+        start_explosion_.push_back(starting_time);
+        epsilon_.push_back(base_epsilon);
+        expansion_rate_.push_back(multiplier * base_expansion);
+        explosion_center_.push_back(position);
+        explosion_coef_.push_back((1.0f / multiplier) * base_coef);
+    }
+    private:
     ParticleState ComputeTimeDerivative(const ParticleState& state, float time) const override {
         ParticleState gradient_state;
-        int num_explosive = 2;
         std::vector<bool> get_rekt_(num_explosive, false);
         std::vector<float> time_since_explode_(num_explosive, 0.f);
         for(int i=0; i<num_explosive; i++){
@@ -57,12 +84,17 @@ class ExplodingSystem : public ParticleSystemBase {
     // glm::vec3 explosion_coef = glm::vec3(1.0f, 0.0f, 0.2f);
 
     //using more than one explosive
-    std::vector<float> start_explosion_ = {0.9f, 0.6f};
-    std::vector<float> epsilon_ = {0.15f, 0.3f};
-    std::vector<float> expansion_rate_ = {40.0f, 8.0f};
+    int num_explosive = 2;
+    std::vector<float> start_explosion_ = {3.0f, 2.6f};
+    std::vector<float> epsilon_ = {0.5f, 0.8f};
+    std::vector<float> expansion_rate_ = {10.0f, 2.0f};
     std::vector<glm::vec3> explosion_center_ = {glm::vec3(0.15f,0.067f,0.f), glm::vec3(-0.2f,0.067f,0.f)}; 
     std::vector<glm::vec3> explosion_coef_ = {glm::vec3(0.9f, 0.0f, 0.1f),glm::vec3(1.1f, 0.0f, 0.3f)};
 
+    //collision adjustment
+    float base_expansion = 4.0f;
+    float base_epsilon = 0.5f;
+    glm::vec3 base_coef = glm::vec3(0.6f,0.0f,0.2f);
 };
 }  // namespace GLOO
 

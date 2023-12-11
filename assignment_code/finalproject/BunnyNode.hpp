@@ -57,8 +57,20 @@ namespace GLOO {
 
         bool exploding_;
         
-        int triangle_scale_ = 3;
+        int triangle_scale_ = 1;
         float triangle_multiplier_ = 1.f / float (triangle_scale_);
+
+        // ball
+        glm::vec3 ball_start = glm::vec3(-0.67f, 0.2f, 0.0f);
+        glm::vec3 ball_velocity = glm::vec3(0.8f,0.0f,0.0f);
+        float ball_radius = 0.05f;
+        float ball_speed = glm::length(ball_velocity);
+
+        // ball - bunny calculation
+        std::pair<bool, std::pair<glm::vec3, glm::vec3>> CheckIntersect(int idx, float time);
+        std::pair<glm::vec3, float> CalcClosest(glm::vec3 a, glm::vec3 b, glm::vec3 c);
+        std::vector<bool> isSmashed;
+        float multiplier_exponent = 20.0f;
     };
 }
 

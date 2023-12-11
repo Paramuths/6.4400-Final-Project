@@ -7,6 +7,7 @@
 #include "gloo/MeshLoader.hpp"
 #include "gloo/debug/PrimitiveFactory.hpp"
 #include <fstream>
+#include <cmath>
 
 namespace GLOO {
     BunnyNode::BunnyNode(float integration_step): 
@@ -33,7 +34,7 @@ namespace GLOO {
         bunny_indices_ = bunny_mesh_->GetIndices();
         SetNormals();
         bunny_normals_ = bunny_mesh_->GetNormals();
-        bunny_scale_ = glm::vec3(3.f);
+        bunny_scale_ = glm::vec3(1.f);
 
         auto bunny_node = make_unique<SceneNode>();
         bunny_node->CreateComponent<ShadingComponent>(bunny_shader_);
@@ -93,6 +94,10 @@ namespace GLOO {
                 }
             }
         }
+        for(int i=0; i< particle_state_.positions.size(); i+=3)
+        {
+            isSmashed.push_back(false);
+        }
         exploding_ = false;
     }
 
@@ -143,7 +148,7 @@ namespace GLOO {
     }
 
     void BunnyNode::Update(double delta_time) {
-        double slow_factor = 4;
+        double slow_factor = 1;
         double delta_time_=delta_time / slow_factor;
         if (exploding_) {
             int num_steps = (delta_time_ + carrier_time_step_)/integration_step_;
@@ -180,6 +185,36 @@ namespace GLOO {
     }
 
     void BunnyNode::Advance(float start_time) {
+        for (int i = 0; i < particle_state_.positions.size(); i+=3) {
+            if(isSmashed[i/3]) continue;
+            std::pair<bool, std::pair<glm::vec3, glm::vec3>> result = CheckIntersect(i, start_time);
+            if(result.first && glm::length(result.second.second) > 0.001){
+                isSmashed[i/3] = true;
+                particle_state_.velocities[i] += ball_velocity;
+                particle_state_.velocities[i+1] += ball_velocity;
+                particle_state_.velocities[i+2] += ball_velocity;
+                glm::vec3 face_normal = glm::normalize(result.second.second);
+                float multiplier = pow(abs(glm::dot(face_normal, ball_velocity / ball_speed)), multiplier_exponent) * ball_speed;
+                particle_system_.AddBomb(start_time, result.second.first, multiplier);
+                // std::cout << start_time << std::endl;
+                  // Create Explosion Center
+                // auto expl_center = std::shared_ptr<VertexObject>(PrimitiveFactory::CreateSphere(0.01f, 20, 20));
+                // auto shader_ = std::make_shared<PhongShader>();
+                // glm::vec3 ctrl_color(1.f,1.f,0.f);
+                // auto expl_material = std::make_shared<Material>(ctrl_color, ctrl_color, glm::vec3(0.4f), 20.0f);
+
+                // auto expl_node = make_unique<SceneNode>();
+                // expl_node->CreateComponent<ShadingComponent>(shader_);
+                // expl_node->CreateComponent<RenderingComponent>(expl_center);
+                // expl_node->CreateComponent<MaterialComponent>(expl_material);
+                // expl_node->GetTransform().SetPosition(result.second.first);
+                // AddChild(std::move(expl_node));
+            }
+            particle_state_.positions[i] += result.second.second;
+            particle_state_.positions[i+1] += result.second.second;
+            particle_state_.positions[i+2] += result.second.second;
+        }
+
         auto next_state = integrator_->Integrate(particle_system_, particle_state_, start_time, integration_step_);
         particle_state_ = next_state;
     }
@@ -242,8 +277,66 @@ namespace GLOO {
 
     void BunnyNode::ResetExplosionActive() {
         bunny_pointer_->SetActive(true);
+        particle_system_.ClearBomb();
+        for(int i=0;i<isSmashed.size();i++) isSmashed[i] = false;
         for (auto triangle_pointer: triangle_pointers_) {
             triangle_pointer->SetActive(false);
         }
+    }
+
+    // retunr {sphere intersect the triangle with vertices p1,p2,p3 or not {point of contact, displacement of the triangle to avoid overlap}}
+    std::pair<bool, std::pair<glm::vec3, glm::vec3>> BunnyNode::CheckIntersect(int idx, float time) {
+        glm::vec3 p1 = particle_state_.positions[idx];
+        glm::vec3 p2 = particle_state_.positions[idx+1];
+        glm::vec3 p3 = particle_state_.positions[idx+2];
+        glm::vec3 o = ball_start + time * ball_velocity;
+
+        glm::vec3 v = o - p3;
+        glm::vec3 v1 = p1-p3;
+        glm::vec3 v2 = p2-p3;
+
+        float q11 = glm::dot(v1, v1);
+        float q12 = glm::dot(v1, v2);
+        float q22 = glm::dot(v2, v2);
+        glm::mat2 Q =glm::mat2(q11, q12, q12, q22);
+        glm::vec2 coefs = glm::inverse(Q) * glm::vec2(glm::dot(v, v1), glm::dot(v, v2));
+        float r1 = coefs[0];
+        float r2 = coefs[1];
+        glm::vec3 plane_vec = r1 * v1 + r2 * v2;
+        glm::vec3 perp_vec = v - plane_vec;
+        float perp_length = glm::length(perp_vec);
+
+        if (perp_length > ball_radius) return {false, {glm::vec3(0.f,0.f,0.f),glm::vec3(0.f,0.f,0.f)}};
+
+        if(r1 >= 0 && r2 >= 0 && r1+r2 <= 1) return {true, {p3+plane_vec, (1 - ball_radius / perp_length)  * perp_vec}};
+
+        // calc closest point to sphere if any (must be on edge)
+        auto temp_data = CalcClosest(p1, p2, o);
+        float min_dist = temp_data.second;
+        glm::vec3 hit_position = temp_data.first;
+        temp_data = CalcClosest(p2,p3,o);
+        if(temp_data.second < min_dist){
+            min_dist = temp_data.second;
+            hit_position = temp_data.first;
+        }
+        temp_data = CalcClosest(p3,p1,o);
+        if(temp_data.second < min_dist){
+            min_dist = temp_data.second;
+            hit_position = temp_data.first;
+        }
+        if(min_dist > ball_radius) return {false, {glm::vec3(0.f,0.f,0.f),glm::vec3(0.f,0.f,0.f)}};
+        float last_perp_dist = pow(ball_radius * ball_radius - glm::dot(plane_vec, plane_vec), 0.5);
+        return {true, {hit_position, (1 - last_perp_dist / perp_length) * perp_vec}};
+    }
+
+    std::pair<glm::vec3, float> BunnyNode::CalcClosest(glm::vec3 a, glm::vec3 b, glm::vec3 c){
+        glm::vec3 ab = b-a;
+        float l = glm::length(ab);
+        ab = (1.0f/ l) * ab;
+        float d = glm::dot(c, ab);
+        if (d<0) d=0;
+        if(d>l) d=l;
+        glm::vec3 landing = a + d * ab;
+        return {landing, glm::length(c - landing)};
     }
 }
